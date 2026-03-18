@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRM Labs — National Security Recruiting Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0d1117;--bg2:#161b22;--bg3:#1c2333;--border:#30363d;--border2:#21262d;
+    --blue:#1f6feb;--blue-bright:#388bfd;--blue-dim:rgba(31,111,235,0.08);
+    --red:#f85149;--red-dim:rgba(248,81,73,0.1);
+    --green:#3fb950;--green-dim:rgba(63,185,80,0.1);
+    --yellow:#e3b341;--yellow-dim:rgba(227,179,65,0.08);
+    --purple:#a371f7;--purple-dim:rgba(163,113,247,0.08);
+    --text:#c9d1d9;--text-muted:#8b949e;--text-bright:#e6edf3;
+    --sans:'Inter',-apple-system,sans-serif;--mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh}
+
+  .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .topbar-left{display:flex;align-items:center;gap:16px}
+  .trm-wordmark{font-weight:700;font-size:18px;color:var(--text-bright);letter-spacing:-0.02em}
+  .topbar-divider{width:1px;height:20px;background:var(--border)}
+  .topbar-label{font-size:13px;color:var(--text-muted)}
+  .topbar-badge{background:var(--blue-dim);border:1px solid rgba(31,111,235,0.3);color:var(--blue-bright);font-size:11px;font-family:var(--mono);padding:2px 10px;border-radius:100px}
+  .live-indicator{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);font-family:var(--mono)}
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+  .layout{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 56px)}
+  @media(max-width:768px){.layout{grid-template-columns:1fr}.sidebar{display:none}}
+
+  .sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:24px 0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+  .sidebar-section{padding:0 16px;margin-bottom:24px}
+  .sidebar-heading{font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;padding:0 8px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+  .add-btn{background:none;border:1px solid var(--border);color:var(--blue-bright);font-size:11px;font-family:var(--mono);padding:2px 8px;border-radius:4px;cursor:pointer;transition:all 0.15s}
+  .add-btn:hover{background:var(--blue-dim)}
+  .sidebar-item{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;font-size:12px;color:var(--text-muted);line-height:1.4;border-radius:4px;position:relative}
+  .sidebar-item:hover .item-actions{opacity:1}
+  .sidebar-item-icon{font-size:11px;color:var(--blue-bright);font-family:var(--mono);margin-top:1px;min-width:14px;flex-shrink:0}
+  .item-text{flex:1}
+  .item-actions{opacity:0;transition:opacity 0.15s;display:flex;gap:4px;flex-shrink:0}
+  .item-btn{background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:3px;font-size:11px;transition:background 0.15s}
+  .item-btn:hover{background:var(--bg3)}
+  .item-edit{color:var(--blue-bright)}
+  .item-delete{color:var(--red)}
+  .item-input{background:var(--bg3);border:1px solid var(--blue-bright);color:var(--text-bright);font-size:12px;font-family:var(--sans);padding:4px 8px;border-radius:4px;width:100%;outline:none;line-height:1.4}
+  .sidebar-divider{height:1px;background:var(--border2);margin:16px}
+
+  .fsp-toggle-block{padding:4px 8px}
+  .fsp-label{font-size:11px;color:var(--text-muted);margin-bottom:8px}
+  .toggle-group{display:flex;gap:4px}
+  .toggle-opt{flex:1;text-align:center;padding:5px 4px;font-size:10px;font-family:var(--mono);letter-spacing:0.04em;border-radius:4px;cursor:pointer;border:1px solid var(--border);color:var(--text-muted);background:none;transition:all 0.15s;white-space:nowrap}
+  .toggle-opt.active-required{background:var(--red-dim);border-color:rgba(248,81,73,0.4);color:var(--red)}
+  .toggle-opt.active-preferred{background:var(--yellow-dim);border-color:rgba(227,179,65,0.4);color:var(--yellow)}
+  .toggle-opt.active-open{background:var(--green-dim);border-color:rgba(63,185,80,0.4);color:var(--green)}
+  .fsp-description{font-size:10px;color:var(--text-muted);padding:6px 0 0 0;font-family:var(--mono);line-height:1.4}
+
+  .competitor-tags{padding:4px 8px;display:flex;flex-wrap:wrap;gap:4px}
+  .excluded-tag{display:inline-flex;align-items:center;gap:4px;background:var(--red-dim);border:1px solid rgba(248,81,73,0.15);color:#f85149bb;font-size:10px;padding:2px 6px;border-radius:3px;font-family:var(--mono)}
+  .tag-remove{background:none;border:none;cursor:pointer;color:#f85149;font-size:11px;padding:0;line-height:1;opacity:0.6;transition:opacity 0.15s}
+  .tag-remove:hover{opacity:1}
+  .tag-input-row{padding:4px 8px;display:flex;gap:6px}
+  .tag-input{background:var(--bg3);border:1px solid var(--border);color:var(--text-bright);font-size:11px;font-family:var(--mono);padding:3px 8px;border-radius:4px;flex:1;outline:none}
+  .tag-input:focus{border-color:var(--blue-bright)}
+  .tag-add-btn{background:var(--blue-dim);border:1px solid rgba(31,111,235,0.3);color:var(--blue-bright);font-size:11px;font-family:var(--mono);padding:3px 10px;border-radius:4px;cursor:pointer;white-space:nowrap}
+
+  .role-block{padding:4px 8px}
+  .role-display{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;font-size:12px;color:var(--text-muted);cursor:pointer;border-radius:4px;transition:background 0.15s}
+  .role-display:hover{background:var(--bg3)}
+  .role-edit-area{display:none;padding:4px 8px}
+  .role-edit-area.active{display:block}
+  .role-textarea{width:100%;background:var(--bg3);border:1px solid var(--blue-bright);color:var(--text-bright);font-size:12px;font-family:var(--sans);padding:8px;border-radius:4px;outline:none;resize:vertical;min-height:80px;line-height:1.5}
+  .role-save-btn{margin-top:6px;background:var(--blue);color:#fff;border:none;font-size:11px;font-family:var(--sans);font-weight:600;padding:5px 14px;border-radius:4px;cursor:pointer;width:100%}
+
+  .main{padding:32px 40px;max-width:860px}
+  @media(max-width:900px){.main{padding:24px 20px}}
+
+  .page-header{margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+  .breadcrumb{font-size:12px;color:var(--text-muted);font-family:var(--mono);margin-bottom:10px}
+  .breadcrumb span{color:var(--blue-bright)}
+  h1{font-size:24px;font-weight:600;color:var(--text-bright);letter-spacing:-0.02em;margin-bottom:8px}
+  .page-meta{font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .meta-pill{background:var(--bg3);border:1px solid var(--border);padding:3px 10px;border-radius:100px;font-size:12px;color:var(--text-muted)}
+  .meta-pill.pill-red{background:var(--red-dim);border-color:rgba(248,81,73,0.3);color:var(--red)}
+  .meta-pill.pill-yellow{background:var(--yellow-dim);border-color:rgba(227,179,65,0.3);color:var(--yellow)}
+  .meta-pill.pill-green{background:var(--green-dim);border-color:rgba(63,185,80,0.3);color:var(--green)}
+
+  /* STEP BUTTONS ROW */
+  .steps-row{display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap}
+
+  .step-block{flex:1;min-width:220px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .step-block.step-ready{border-color:rgba(163,113,247,0.4);background:var(--purple-dim);animation:readyPulse 2s infinite}
+  @keyframes readyPulse{0%,100%{box-shadow:0 0 0 0 rgba(163,113,247,0)}50%{box-shadow:0 0 12px 2px rgba(163,113,247,0.2)}}
+
+  .step-info{display:flex;flex-direction:column;gap:4px}
+  .step-num{font-family:var(--mono);font-size:10px;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase}
+  .step-name{font-size:13px;font-weight:600;color:var(--text-bright)}
+  .step-status{font-size:11px;font-family:var(--mono);color:var(--text-muted)}
+  .step-block.step-ready .step-status{color:var(--purple)}
+
+  .step-btn{border:none;padding:9px 18px;border-radius:6px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+  .step-btn-analysis{background:var(--blue);color:#fff}
+  .step-btn-analysis:hover:not(:disabled){background:var(--blue-bright);box-shadow:0 0 16px rgba(31,111,235,0.3)}
+  .step-btn-candidates{background:var(--bg3);color:var(--text-muted);border:1px solid var(--border);cursor:not-allowed}
+  .step-btn-candidates.ready{background:var(--purple);color:#fff;cursor:pointer;border-color:var(--purple)}
+  .step-btn-candidates.ready:hover{background:#b490ff;box-shadow:0 0 16px rgba(163,113,247,0.3)}
+  .step-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+  .ready-badge{display:none;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--purple);background:var(--purple-dim);border:1px solid rgba(163,113,247,0.3);padding:2px 8px;border-radius:100px;white-space:nowrap}
+  .ready-badge.visible{display:flex}
+  .ready-dot{width:5px;height:5px;border-radius:50%;background:var(--purple);box-shadow:0 0 4px var(--purple);animation:blink 1.5s infinite}
+
+  .loading-block{display:none;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:20px 24px;margin-bottom:28px}
+  .loading-block.active{display:block}
+  .loading-row{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12px;font-family:var(--mono);color:var(--text-muted);opacity:0;animation:fadeSlide 0.3s forwards}
+  .loading-row.done{color:var(--green)}
+  @keyframes fadeSlide{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+  .spin{width:12px;height:12px;border:1.5px solid var(--border);border-top-color:var(--blue-bright);border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0}
+  .spin-purple{border-top-color:var(--purple)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .check-icon{color:var(--green);font-size:12px;width:12px;flex-shrink:0}
+
+  .error-block{display:none;background:var(--red-dim);border:1px solid rgba(248,81,73,0.3);border-radius:8px;padding:14px 18px;font-family:var(--mono);font-size:12px;color:var(--red);margin-bottom:24px}
+  .error-block.active{display:block}
+
+  .output-area{display:none}
+  .output-area.visible{display:block}
+  .output-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;overflow:hidden;opacity:0;transform:translateY(10px);transition:opacity 0.4s ease,transform 0.4s ease}
+  .output-card.revealed{opacity:1;transform:translateY(0)}
+  .card-header{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border2);background:var(--bg3)}
+  .card-num{width:24px;height:24px;background:var(--blue-dim);border:1px solid rgba(31,111,235,0.3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--blue-bright);font-weight:500;flex-shrink:0}
+  .card-num-purple{background:var(--purple-dim);border-color:rgba(163,113,247,0.3);color:var(--purple)}
+  .card-title{font-size:14px;font-weight:600;color:var(--text-bright)}
+  .card-body{padding:20px 24px;font-size:14px;line-height:1.75;color:var(--text)}
+  .card-body h3{font-size:11px;font-weight:600;color:var(--blue-bright);letter-spacing:0.1em;text-transform:uppercase;font-family:var(--mono);margin:20px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border2)}
+  .card-body h3:first-child{margin-top:0}
+  .card-body p{margin-bottom:10px}
+  .card-body ul{list-style:none;margin-bottom:12px;padding:0}
+  .card-body ul li{padding:5px 0 5px 16px;position:relative;border-bottom:1px solid var(--border2);font-size:13px}
+  .card-body ul li:last-child{border-bottom:none}
+  .card-body ul li::before{content:'→';position:absolute;left:0;color:var(--blue-bright);font-size:11px;top:7px}
+  .card-body strong{color:var(--text-bright);font-weight:500}
+
+  /* CANDIDATE CARDS */
+  .candidate-card{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:16px 20px;margin-bottom:12px;display:flex;gap:16px;align-items:flex-start}
+  .candidate-rank{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--purple);min-width:28px;line-height:1.2;margin-top:2px}
+  .candidate-info{flex:1}
+  .candidate-name{font-size:15px;font-weight:600;color:var(--text-bright);margin-bottom:2px}
+  .candidate-title{font-size:13px;color:var(--text-muted);margin-bottom:8px}
+  .candidate-why{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:10px;padding:8px 12px;background:var(--bg2);border-radius:4px;border-left:2px solid var(--purple)}
+  .candidate-link{display:inline-flex;align-items:center;gap:6px;background:var(--blue-dim);border:1px solid rgba(31,111,235,0.3);color:var(--blue-bright);font-size:11px;font-family:var(--mono);padding:4px 12px;border-radius:4px;text-decoration:none;transition:all 0.15s}
+  .candidate-link:hover{background:rgba(31,111,235,0.15);border-color:rgba(31,111,235,0.5)}
+  .candidate-note{font-size:10px;color:var(--text-muted);font-family:var(--mono);margin-top:6px}
+
+  .sourcing-note{background:var(--yellow-dim);border:1px solid rgba(227,179,65,0.2);border-radius:6px;padding:12px 16px;font-size:12px;color:var(--yellow);margin-top:12px;line-height:1.7}
+
+  .boolean-block{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;margin-bottom:12px;overflow:hidden}
+  .boolean-label{font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);padding:8px 14px;border-bottom:1px solid var(--border2);display:flex;justify-content:space-between;align-items:center}
+  .boolean-string{font-family:var(--mono);font-size:12px;color:var(--text-bright);padding:12px 14px;line-height:1.6;word-break:break-word}
+  .copy-btn{background:none;border:1px solid var(--border);color:var(--text-muted);font-size:10px;font-family:var(--mono);padding:2px 10px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+  .copy-btn:hover{background:var(--blue-dim);border-color:rgba(31,111,235,0.3);color:var(--blue-bright)}
+  .copy-btn.copied{background:var(--green-dim);border-color:rgba(63,185,80,0.3);color:var(--green)}
+
+  .page-footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);font-family:var(--mono);flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="trm-wordmark">TRM</span>
+    <div class="topbar-divider"></div>
+    <span class="topbar-label">Recruiting Intelligence</span>
+    <span class="topbar-badge">INTERNAL</span>
+  </div>
+  <div class="live-indicator"><div class="live-dot"></div>LIVE DATA</div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Clearance Requirement</div>
+      <div class="fsp-toggle-block">
+        <div class="fsp-label">Full Scope Polygraph (FSP)</div>
+        <div class="toggle-group">
+          <button class="toggle-opt active-required" id="fsp-required" onclick="setFSP('required')">Required</button>
+          <button class="toggle-opt" id="fsp-preferred" onclick="setFSP('preferred')">Preferred</button>
+          <button class="toggle-opt" id="fsp-open" onclick="setFSP('open')">TS/SCI Only</button>
+        </div>
+        <div class="fsp-description" id="fspDesc">Hard filter. Pool: ~20–50 active candidates.</div>
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Search Criteria <button class="add-btn" onclick="addCriteria()">+ Add</button></div>
+      <div id="criteriaList"></div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Excluded Competitors</div>
+      <div class="competitor-tags" id="competitorTags"></div>
+      <div class="tag-input-row">
+        <input class="tag-input" id="newCompetitor" placeholder="Add company..." onkeydown="if(event.key==='Enter')addCompetitor()">
+        <button class="tag-add-btn" onclick="addCompetitor()">Add</button>
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Role</div>
+      <div class="role-block">
+        <div class="role-display" onclick="toggleRoleEdit()">
+          <span class="sidebar-item-icon">↗</span>
+          <span id="roleDisplayText">Account Director, US National Security<br>Washington DC · Remote</span>
+        </div>
+        <div class="role-edit-area" id="roleEditArea">
+          <textarea class="role-textarea" id="roleInput" placeholder="Paste job title or description..."></textarea>
+          <button class="role-save-btn" onclick="saveRole()">Save Role</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="page-header">
+      <div class="breadcrumb">Recruiting / <span>National Security Search Agent</span></div>
+      <h1>Market Intelligence Report</h1>
+      <div class="page-meta">
+        <span class="meta-pill" id="pill1">Account Director · National Security</span>
+        <span class="meta-pill pill-red" id="pill2">TS/SCI + FSP Required</span>
+        <span class="meta-pill" id="pill3"></span>
+      </div>
+    </div>
+
+    <!-- STEP BUTTONS -->
+    <div class="steps-row">
+      <div class="step-block" id="step1block">
+        <div class="step-info">
+          <span class="step-num">Step 1</span>
+          <span class="step-name">Market Analysis</span>
+          <span class="step-status" id="step1status">TAM · Startups · Affiliations · Boolean</span>
+        </div>
+        <button class="step-btn step-btn-analysis" id="runBtn" onclick="runAnalysis()">▶ Run Analysis</button>
+      </div>
+      <div class="step-block" id="step2block">
+        <div class="step-info">
+          <span class="step-num">Step 2</span>
+          <span class="step-name">Candidate Shortlist</span>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
+            <span class="step-status" id="step2status">Run Step 1 first</span>
+            <span class="ready-badge" id="readyBadge"><span class="ready-dot"></span>Ready</span>
+          </div>
+        </div>
+        <button class="step-btn step-btn-candidates" id="candidateBtn" onclick="findCandidates()" disabled>Find Candidates</button>
+      </div>
+    </div>
+
+    <div class="error-block" id="errorBlock"></div>
+
+    <!-- LOADING ANALYSIS -->
+    <div class="loading-block" id="loadingBlock">
+      <div class="loading-row" id="r1" style="animation-delay:0s"><div class="spin" id="s1"></div>Estimating cleared talent pool...</div>
+      <div class="loading-row" id="r2" style="animation-delay:0.35s"><div class="spin" id="s2"></div>Mapping IC-focused startups...</div>
+      <div class="loading-row" id="r3" style="animation-delay:0.7s"><div class="spin" id="s3"></div>Surfacing cleared talent affiliations...</div>
+      <div class="loading-row" id="r4" style="animation-delay:1.05s"><div class="spin" id="s4"></div>Building Boolean search strings...</div>
+    </div>
+
+    <!-- LOADING CANDIDATES -->
+    <div class="loading-block" id="loadingCandidates">
+      <div class="loading-row" id="c1" style="animation-delay:0s"><div class="spin spin-purple" id="cs1"></div>Running X-ray search on LinkedIn profiles...</div>
+      <div class="loading-row" id="c2" style="animation-delay:0.4s"><div class="spin spin-purple" id="cs2"></div>Filtering by role, clearance signals, and company...</div>
+      <div class="loading-row" id="c3" style="animation-delay:0.8s"><div class="spin spin-purple" id="cs3"></div>Ranking and verifying candidate profiles...</div>
+    </div>
+
+    <!-- OUTPUT -->
+    <div class="output-area" id="outputArea">
+      <div class="output-card" id="card1">
+        <div class="card-header"><div class="card-num">01</div><div class="card-title">Total Addressable Market</div></div>
+        <div class="card-body" id="body1"></div>
+      </div>
+      <div class="output-card" id="card2">
+        <div class="card-header"><div class="card-num">02</div><div class="card-title">Target High-Growth Startups</div></div>
+        <div class="card-body" id="body2"></div>
+      </div>
+      <div class="output-card" id="card3">
+        <div class="card-header"><div class="card-num">03</div><div class="card-title">Relevant Affiliations to Target</div></div>
+        <div class="card-body" id="body3"></div>
+      </div>
+      <div class="output-card" id="card4">
+        <div class="card-header"><div class="card-num">04</div><div class="card-title">Boolean Search Strings</div></div>
+        <div class="card-body" id="body4"></div>
+      </div>
+      <div class="output-card" id="card5">
+        <div class="card-header">
+          <div class="card-num card-num-purple">05</div>
+          <div class="card-title">Candidate Shortlist</div>
+        </div>
+        <div class="card-body" id="body5"></div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>Moonshot Consulting DC · TRM Labs Recruiting Exercise</span>
+      <span id="tsStamp"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PROXY = "http://localhost:8080";
+  let fspMode = 'required';
+  let analysisComplete = false;
+
+  let criteria = [
+    "US Citizen, employed in United States",
+    "5+ years B2G SaaS sales · 6–7 figure government deals",
+    "National Security or Public Sector sales experience",
+    "2+ year tenure per company",
+    "1+ high-growth startup in background"
+  ];
+
+  let competitors = [
+    "Chainalysis","Elliptic","Merkle Science","Scorechain",
+    "CipherTrace","Solidus Labs","Inca Digital","Elementus"
+  ];
+
+  let roleText = "Account Director, US National Security\nWashington DC · Remote";
+
+  const FSP_CONFIG = {
+    required:{
+      label:'TS/SCI + FSP Required',pillClass:'pill-red',
+      desc:'Hard filter. Pool: ~20–50 active candidates.',
+      prompt:`CLEARANCE: TS/SCI with Full Scope Polygraph is a HARD REQUIREMENT. Non-negotiable. Final active pool is realistically 20-50 candidates. Be honest — do not inflate.`
+    },
+    preferred:{
+      label:'TS/SCI + FSP Preferred',pillClass:'pill-yellow',
+      desc:'Soft filter. Pool expands to ~200–400 candidates.',
+      prompt:`CLEARANCE: TS/SCI required. Full Scope Polygraph strongly preferred but not a hard filter. Model both pools: FSP-confirmed (~20-50) and FSP-eligible (~200-400).`
+    },
+    open:{
+      label:'TS/SCI Only',pillClass:'pill-green',
+      desc:'Broader pool. ~1,500–3,000 candidates.',
+      prompt:`CLEARANCE: TS/SCI required. No polygraph requirement. Pool is roughly 1,500-3,000 active candidates. Note TRM's actual role requires FSP — this models a relaxed scenario.`
+    }
+  };
+
+  const now = new Date();
+  document.getElementById('tsStamp').textContent = 'Generated: ' + now.toISOString().slice(0,19).replace('T',' ') + ' UTC';
+  document.getElementById('pill3').textContent = now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  renderCriteria();
+  renderCompetitors();
+
+  function setFSP(mode) {
+    fspMode = mode;
+    ['required','preferred','open'].forEach(m => {
+      const btn = document.getElementById(`fsp-${m}`);
+      btn.className = 'toggle-opt' + (m===mode ? ` active-${m}` : '');
+    });
+    const cfg = FSP_CONFIG[mode];
+    document.getElementById('fspDesc').textContent = cfg.desc;
+    const pill = document.getElementById('pill2');
+    pill.textContent = cfg.label;
+    pill.className = `meta-pill ${cfg.pillClass}`;
+  }
+
+  function renderCriteria() {
+    document.getElementById('criteriaList').innerHTML = criteria.map((c,i) => `
+      <div class="sidebar-item" id="citem${i}">
+        <span class="sidebar-item-icon">${String(i+1).padStart(2,'0')}</span>
+        <span class="item-text" id="ctext${i}">${c}</span>
+        <div class="item-actions">
+          <button class="item-btn item-edit" onclick="editCriteria(${i})">✏</button>
+          <button class="item-btn item-delete" onclick="deleteCriteria(${i})">✕</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function editCriteria(i) {
+    document.getElementById(`ctext${i}`).innerHTML =
+      `<input class="item-input" id="cinput${i}" value="${criteria[i].replace(/"/g,'&quot;')}"
+       onblur="saveCriteria(${i})" onkeydown="if(event.key==='Enter')saveCriteria(${i})">`;
+    document.getElementById(`cinput${i}`).focus();
+  }
+
+  function saveCriteria(i) {
+    const el = document.getElementById(`cinput${i}`);
+    if (el) { criteria[i] = el.value.trim() || criteria[i]; renderCriteria(); }
+  }
+
+  function deleteCriteria(i) { criteria.splice(i,1); renderCriteria(); }
+
+  function addCriteria() {
+    criteria.push("New requirement — click ✏ to edit");
+    renderCriteria(); editCriteria(criteria.length-1);
+  }
+
+  function renderCompetitors() {
+    document.getElementById('competitorTags').innerHTML = competitors.map((c,i) => `
+      <span class="excluded-tag">${c}
+        <button class="tag-remove" onclick="removeCompetitor(${i})">✕</button>
+      </span>`).join('');
+  }
+
+  function removeCompetitor(i) { competitors.splice(i,1); renderCompetitors(); }
+
+  function addCompetitor() {
+    const el = document.getElementById('newCompetitor');
+    const v = el.value.trim();
+    if (v && !competitors.includes(v)) { competitors.push(v); renderCompetitors(); }
+    el.value='';
+  }
+
+  function toggleRoleEdit() {
+    const area = document.getElementById('roleEditArea');
+    if (!area.classList.contains('active')) {
+      document.getElementById('roleInput').value = roleText;
+      area.classList.add('active');
+      document.getElementById('roleInput').focus();
+    } else { area.classList.remove('active'); }
+  }
+
+  function saveRole() {
+    const v = document.getElementById('roleInput').value.trim();
+    if (v) {
+      roleText = v;
+      document.getElementById('roleDisplayText').innerHTML = roleText.replace(/\n/g,'<br>');
+      document.getElementById('pill1').textContent = roleText.split('\n')[0];
+    }
+    document.getElementById('roleEditArea').classList.remove('active');
+  }
+
+  function markStepReady() {
+    analysisComplete = true;
+    const btn = document.getElementById('candidateBtn');
+    btn.disabled = false;
+    btn.className = 'step-btn step-btn-candidates ready';
+    document.getElementById('step2status').textContent = 'Analysis complete · Click to source';
+    document.getElementById('readyBadge').classList.add('visible');
+    document.getElementById('step2block').classList.add('step-ready');
+  }
+
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+
+  function markDone(rowId, spinId) {
+    const el = document.getElementById(spinId);
+    if (el) el.outerHTML = '<span class="check-icon">✓</span>';
+    document.getElementById(rowId)?.classList.add('done');
+  }
+
+  function buildAnalysisPrompt() {
+    const cfg = FSP_CONFIG[fspMode];
+    return `You are a recruiting intelligence analyst specializing in cleared national security talent. Be precise and analytical. No marketing language. No filler.
+
+ROLE: ${roleText}
+${cfg.prompt}
+
+ADDITIONAL REQUIREMENTS:
+${criteria.map((c,i)=>`${i+1}. ${c}`).join('\n')}
+
+EXCLUDED COMPANIES: ${competitors.join(', ')}
+
+Produce exactly four sections:
+
+SECTION 1 — TOTAL ADDRESSABLE MARKET
+Work through the funnel using real ODNI data. Show your math at each step.
+- Start: ~1.3M Top Secret holders
+- Filter by clearance level per requirement above
+- Filter: sales roles only (<3% of cleared workforce)
+- Filter: B2G SaaS + national security vertical
+- Filter: startup background + tenure
+- Final honest pool estimate with confidence level
+- Seniority split of FINAL pool: Director / Senior Director / VP
+- Do NOT suggest pool expansion strategies
+
+SECTION 2 — TARGET HIGH-GROWTH STARTUPS
+Exactly 10 companies. IC/defense/govtech/intelligence platforms only. No generic SaaS.
+Format each:
+Company: [name]
+Why: [one sentence on talent transferability to TRM]
+Signal: [one LinkedIn indicator to look for]
+
+SECTION 3 — RELEVANT AFFILIATIONS
+- 3 professional organizations with specifics
+- 3 conferences with location and month
+- Top 3 cleared job boards: URL, employer credentials required y/n, FSP filter y/n
+- 2 specific LinkedIn tactics for cleared B2G sales professionals
+
+SECTION 4 — BOOLEAN SEARCH STRINGS
+4 strings ready for LinkedIn standard search.
+String 1 — Title focus: Account Director/Executive/BD variants in national security
+String 2 — Company alumni focus: IC-facing company alumni
+String 3 — Clearance signal focus: keywords cleared professionals use on LinkedIn
+String 4 — High precision combined string
+Then one note on FSP LinkedIn limitation and 3 best alternative databases.`;
+  }
+
+  function buildCandidatePrompt() {
+    const fspNote = fspMode === 'required'
+      ? 'Target candidates who mention TS/SCI, polygraph, full scope poly, or FSP clearance.'
+      : fspMode === 'preferred'
+      ? 'Target TS/SCI cleared candidates. FSP preferred but not required.'
+      : 'Target TS/SCI cleared candidates.';
+
+    const excludedStr = competitors.join('", "');
+
+    return `You are a recruiting researcher. Your job is to find 5 real candidate profiles for this role using web search.
+
+ROLE: ${roleText}
+${fspNote}
+EXCLUDED: Do not include anyone at: "${excludedStr}"
+
+INSTRUCTIONS — follow exactly in order:
+
+Step 1: Run this web search:
+site:linkedin.com/in "account director" "national security" "government"
+
+Step 2: Run this web search:
+site:linkedin.com/in "account executive" "national security" "SaaS" "cleared"
+
+Step 3: Run this web search:
+site:linkedin.com/in "business development" "Palantir" OR "Anduril" OR "Vannevar" "government"
+
+Step 4: Run this web search:
+site:linkedin.com/in "account director" "public sector" "blockchain" OR "crypto" OR "fintech"
+
+Step 5: From the results of all four searches, select the 5 best matching profiles. For each one, output:
+
+CANDIDATE 1
+Name: [full name from search result]
+Title: [their current title and company]
+Location: [city and state if visible]
+Why: [2-3 sentences on why they fit this role based on what you can see]
+LinkedIn: https://www.linkedin.com/in/[their-profile-slug]
+
+CANDIDATE 2
+[same format]
+
+...continue through CANDIDATE 5
+
+Rules:
+- Only use real names and URLs you found in search results
+- If a URL is uncertain add (verify) after it
+- Do not fabricate anyone
+- If search results are limited, note that and provide what you found`;
+  }
+
+  async function runAnalysis() {
+    const btn = document.getElementById('runBtn');
+    const loading = document.getElementById('loadingBlock');
+    const output = document.getElementById('outputArea');
+    const errBlock = document.getElementById('errorBlock');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Running...';
+    document.getElementById('step1status').textContent = 'Analysis in progress...';
+    errBlock.classList.remove('active');
+    loading.classList.add('active');
+    output.classList.remove('visible');
+    ['card1','card2','card3','card4','card5'].forEach(id => document.getElementById(id).classList.remove('revealed'));
+    document.getElementById('step2block').classList.remove('step-ready');
+    document.getElementById('readyBadge').classList.remove('visible');
+
+    try {
+      await delay(400); markDone('r1','s1');
+      await delay(400); markDone('r2','s2');
+
+      const res = await fetch(PROXY, {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-sonnet-4-20250514", max_tokens:4000,
+          tools:[{type:"web_search_20250305",name:"web_search"}],
+          messages:[{role:"user",content:buildAnalysisPrompt()}]
+        })
+      });
+
+      await delay(400); markDone('r3','s3');
+      await delay(300); markDone('r4','s4');
+
+      if (!res.ok) throw new Error(`Proxy ${res.status}: ${await res.text()}`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+
+      const fullText = data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n');
+      const sections = splitSections(fullText);
+
+      await delay(400);
+      loading.classList.remove('active');
+      output.classList.add('visible');
+
+      document.getElementById('body1').innerHTML = renderMd(sections[0]);
+      document.getElementById('body2').innerHTML = renderMd(sections[1]);
+      document.getElementById('body3').innerHTML = renderMd(sections[2]);
+      document.getElementById('body4').innerHTML = buildBooleanHTML(sections[3]||'');
+
+      setTimeout(()=>document.getElementById('card1').classList.add('revealed'),80);
+      setTimeout(()=>document.getElementById('card2').classList.add('revealed'),220);
+      setTimeout(()=>document.getElementById('card3').classList.add('revealed'),360);
+      setTimeout(()=>document.getElementById('card4').classList.add('revealed'),500);
+
+      btn.textContent = '↺ Re-run';
+      btn.disabled = false;
+      document.getElementById('step1status').textContent = 'Complete · ' + new Date().toLocaleTimeString();
+      markStepReady();
+
+    } catch(err) {
+      loading.classList.remove('active');
+      errBlock.textContent = 'Error: ' + err.message + ' — Is the proxy running?';
+      errBlock.classList.add('active');
+      btn.textContent = '▶ Run Analysis';
+      btn.disabled = false;
+      document.getElementById('step1status').textContent = 'TAM · Startups · Affiliations · Boolean';
+    }
+  }
+
+  async function findCandidates() {
+    const btn = document.getElementById('candidateBtn');
+    const loading = document.getElementById('loadingCandidates');
+    const errBlock = document.getElementById('errorBlock');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Searching...';
+    errBlock.classList.remove('active');
+    loading.classList.add('active');
+    document.getElementById('card5').classList.remove('revealed');
+
+    try {
+      await delay(500); markDone('c1','cs1');
+      await delay(500); markDone('c2','cs2');
+
+      const res = await fetch(PROXY, {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-sonnet-4-20250514", max_tokens:3000,
+          tools:[{type:"web_search_20250305",name:"web_search"}],
+          messages:[{role:"user",content:buildCandidatePrompt()}]
+        })
+      });
+
+      await delay(400); markDone('c3','cs3');
+
+      if (!res.ok) throw new Error(`Proxy ${res.status}: ${await res.text()}`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+
+      const fullText = data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n');
+
+      await delay(400);
+      loading.classList.remove('active');
+
+      document.getElementById('body5').innerHTML = buildCandidateHTML(fullText);
+      setTimeout(()=>document.getElementById('card5').classList.add('revealed'),100);
+
+      btn.textContent = '↺ Re-search';
+      btn.disabled = false;
+
+    } catch(err) {
+      loading.classList.remove('active');
+      errBlock.textContent = 'Candidate search error: ' + err.message;
+      errBlock.classList.add('active');
+      btn.textContent = 'Find Candidates';
+      btn.disabled = false;
+    }
+  }
+
+  function buildCandidateHTML(text) {
+    if (!text || text.trim().length < 20) return '<p>No candidates returned. Try re-searching.</p>';
+
+    // Try structured parse first
+    const blocks = text.split(/\n(?=CANDIDATE\s+[1-5])/i).filter(b => b.trim() && /CANDIDATE/i.test(b));
+
+    if (blocks.length > 0) {
+      return blocks.map(block => {
+        const name = block.match(/Name:\s*(.+)/i)?.[1]?.trim() || 'Unknown';
+        const title = block.match(/Title:\s*(.+)/i)?.[1]?.trim() || '';
+        const location = block.match(/Location:\s*(.+)/i)?.[1]?.trim() || '';
+        const why = block.match(/Why:\s*([\s\S]+?)(?=LinkedIn:|$)/i)?.[1]?.trim() || '';
+        const urlMatch = block.match(/LinkedIn:\s*(https?:\/\/[^\s\)]+)/i);
+        const url = urlMatch?.[1]?.trim() || '';
+        const rank = block.match(/CANDIDATE\s+(\d)/i)?.[1] || '?';
+        const needsVerify = block.includes('(verify)');
+        const cleanUrl = url.replace(/\(verify\)/g,'').trim();
+
+        return `
+          <div class="candidate-card">
+            <div class="candidate-rank">#${rank}</div>
+            <div class="candidate-info">
+              <div class="candidate-name">${name}</div>
+              <div class="candidate-title">${title}${location ? ' · ' + location : ''}</div>
+              ${why ? `<div class="candidate-why">${why}</div>` : ''}
+              ${cleanUrl ? `<a class="candidate-link" href="${cleanUrl}" target="_blank" rel="noopener">↗ View LinkedIn Profile</a>` : '<div class="candidate-note">No direct URL found — use Boolean search above to locate manually</div>'}
+              ${needsVerify ? `<div class="candidate-note">⚠ URL unverified — confirm before outreach</div>` : ''}
+            </div>
+          </div>`;
+      }).join('') +
+      `<div class="sourcing-note">
+        Profiles surfaced via Google X-ray search of public LinkedIn data. Always verify before outreach.
+        LinkedIn visibility depends on your login status and the candidate's privacy settings.
+      </div>`;
+    }
+
+    // Fallback: render raw text so nothing is lost
+    return `<div class="sourcing-note" style="margin-bottom:16px">
+      ⚠ Results returned in unstructured format. Raw output below — use this to manually locate profiles.
+    </div>` + renderMd(text);
+  }
+
+  function buildBooleanHTML(text) {
+    if (!text||text.trim().length<10) return '<p>No data returned.</p>';
+    const lines = text.split('\n');
+    const strings = [];
+    let current = null;
+    for (const line of lines) {
+      const t = line.trim();
+      if (/^string\s*[1-4]\s*[—–-]/i.test(t)) {
+        if (current) strings.push(current);
+        current = {label:t.replace(/^string\s*[1-4]\s*[—–-]\s*/i,''),value:''};
+      } else if (current && t && !current.value && !/^(section|note)/i.test(t)) {
+        current.value = t;
+      }
+    }
+    if (current) strings.push(current);
+    if (strings.length===0) return renderMd(text);
+    return strings.map((s,i) => `
+      <div class="boolean-block">
+        <div class="boolean-label">
+          <span>${s.label||'String '+(i+1)}</span>
+          <button class="copy-btn" id="copybtn${i}" onclick="copyStr(${i},this)">Copy</button>
+        </div>
+        <div class="boolean-string" id="boolstr${i}">${s.value}</div>
+      </div>`).join('') +
+    `<div class="sourcing-note">
+      ⚠ <strong>LinkedIn cannot filter FSP directly.</strong> Scan profiles manually for: "polygraph" · "full scope" · "TS/SCI" · "FSP"<br><br>
+      <strong>FSP-capable databases:</strong><br>
+      · ClearanceJobs.com — FSP filter · employer subscription required<br>
+      · ClearedCareers.com — FSP-filterable · paid · unlimited views<br>
+      · ClearedJobs.net — clearance filters · employer credentials required
+    </div>`;
+  }
+
+  function copyStr(i,btn) {
+    navigator.clipboard.writeText(document.getElementById(`boolstr${i}`)?.textContent||'').then(()=>{
+      btn.textContent='Copied'; btn.classList.add('copied');
+      setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000);
+    });
+  }
+
+  function splitSections(text) {
+    const parts = text.split(/\n(?=SECTION\s+[1-4]\s*[—–-])/i);
+    if (parts.length>=4) return parts.slice(0,4);
+    if (parts.length===3) return [...parts,''];
+    const lines = text.split('\n');
+    const q = Math.floor(lines.length/4);
+    return [0,1,2,3].map(i=>lines.slice(i*q,i===3?undefined:(i+1)*q).join('\n'));
+  }
+
+  function renderMd(text) {
+    if (!text||text.trim().length<10) return '<p>No data returned.</p>';
+    let html = text
+      .replace(/^SECTION\s*\d+[^\n]*/gm,'')
+      .replace(/^#{1,3}\s*(.+)$/gm,'<h3>$1</h3>')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/^[-•*]\s+(.+)$/gm,'<li>$1</li>')
+      .replace(/^\d+\.\s+(.+)$/gm,'<li>$1</li>');
+    html=html.replace(/(<li>[^]*?)(?=<h3>|$)/g,m=>m.includes('<li>')?'<ul>'+m+'</ul>':m);
+    html=html.split(/\n\n+/).map(b=>{
+      b=b.trim();
+      if(!b||b.startsWith('<h3>')||b.startsWith('<ul>')||b.startsWith('<li>'))return b;
+      return '<p>'+b.replace(/\n/g,' ')+'</p>';
+    }).join('');
+    return html.replace(/<p>\s*<\/p>/g,'').trim();
+  }
+</script>
+</body>
+</html>
